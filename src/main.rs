@@ -1,11 +1,16 @@
 use std::collections::HashMap;
-#[allow(unused_imports)]
 use std::io::{self, Write};
 use std::{env, fs, process};
 
 fn echo(st: &str) {
     println!("{}", st);
     io::stdout().flush().unwrap();
+}
+
+fn pwd() {
+    if let Ok(cur_dir) = env::current_dir() {
+        println!("{}", cur_dir.to_str().unwrap());
+    }
 }
 
 fn main() {
@@ -23,7 +28,7 @@ fn main() {
         let cmd = parts.next().unwrap_or("");
         let args = parts.next().unwrap_or("");
 
-        let commands = ["exit", "echo", "type"];
+        let commands = ["exit", "echo", "pwd", "type"];
         let mut all_commands: HashMap<String, String> = HashMap::new();
 
         for each_path in env::var("PATH").unwrap().split(":") {
@@ -46,6 +51,7 @@ fn main() {
         match (cmd, args) {
             ("exit", "0") => process::exit(args.parse().unwrap()),
             ("echo", args) => echo(args),
+            ("pwd", "") => pwd(),
             ("type", args) => {
                 if all_commands.contains_key(&args.to_string()) {
                     let (program, path) = all_commands.get_key_value(args).unwrap();
