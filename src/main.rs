@@ -23,7 +23,7 @@ fn main() {
         let args = parts.next().unwrap_or("");
 
         match (cmd, args) {
-            ("exit", "0") => process::exit(args.parse().unwrap_or(0)),
+            ("exit", "0") => process::exit(args.parse().unwrap()),
             ("echo", args) => echo(args),
             _ => println!("{}: command not found", cmd),
         }
