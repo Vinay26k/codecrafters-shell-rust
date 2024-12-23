@@ -48,13 +48,26 @@ fn main() {
             ("echo", args) => echo(args),
             ("type", args) => {
                 if all_commands.contains_key(&args.to_string()) {
-                    let (k, v) = all_commands.get_key_value(args).unwrap();
-                    println!("{} is {}", k, v)
+                    let (program, path) = all_commands.get_key_value(args).unwrap();
+                    println!("{} is {}", program, path)
                 } else {
                     println!("{}: not found", &args)
                 }
             }
-            _ => println!("{}: command not found", cmd),
+            _ => {
+                if all_commands.contains_key(&cmd.to_string()) {
+                    let (_program, cmd_path) = all_commands.get_key_value(cmd).unwrap();
+                    let output = process::Command::new(cmd_path)
+                        .stdout(process::Stdio::piped())
+                        .stderr(process::Stdio::piped())
+                        .arg(args)
+                        .output()
+                        .unwrap();
+                    print!("{}", String::from_utf8_lossy(&output.stdout));
+                } else {
+                    println!("{}: command not found", cmd);
+                }
+            }
         }
     }
 }
