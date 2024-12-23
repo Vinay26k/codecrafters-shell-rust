@@ -22,9 +22,18 @@ fn main() {
         let cmd = parts.next().unwrap_or("");
         let args = parts.next().unwrap_or("");
 
+        let commands = ["exit", "echo", "type"];
+
         match (cmd, args) {
             ("exit", "0") => process::exit(args.parse().unwrap()),
             ("echo", args) => echo(args),
+            ("type", args) => {
+                if commands.contains(&args) {
+                    println!("{} is a shell builtin", &args)
+                } else {
+                    println!("{}: not found", &args)
+                }
+            }
             _ => println!("{}: command not found", cmd),
         }
     }
