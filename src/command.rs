@@ -37,16 +37,38 @@ impl Command {
                 let normalized_path = if path.starts_with("~") {
                     path.replacen("~", env::var("HOME").unwrap_or_default().as_str(), 1)
                 } else if path.starts_with("./") {
-                    path.replacen("./", env::current_dir().unwrap().to_str().unwrap(), 1)
+                    let replacement =
+                        env::current_dir().unwrap().to_str().unwrap().to_owned() + "/";
+                    path.replacen("./", &replacement, 1)
                 } else if path.starts_with("../") {
-                    path.replacen("../", env::current_dir().unwrap().to_str().unwrap(), 1)
+                    let pwd = env::current_dir().unwrap().to_str().unwrap().to_string();
+                    let mut pwd_parts = pwd.split("/").collect::<Vec<&str>>();
+                    let path_parts = path.split("../").collect::<Vec<&str>>();
+
+                    // even if character doesn't exist, splits empty string
+                    let count = path_parts.len() - 1;
+
+                    for _ in 0..count {
+                        pwd_parts.pop();
+                    }
+
+                    pwd_parts.join("/")
                 } else {
                     path.to_string()
                 };
-                let ch_cmd = env::set_current_dir(normalized_path);
+                // handle if we have come to root directory after multiple cd ../
+                let normalized_path = if normalized_path == "" {
+                    env::var("HOME").unwrap_or_default()
+                } else {
+                    normalized_path
+                };
+
+                let ch_cmd = env::set_current_dir(normalized_path.clone());
                 match ch_cmd {
                     Ok(_) => (),
-                    Err(_) => println!("cd: {}: No such file or directory", path),
+                    Err(_) => {
+                        println!("cd: {}: No such file or directory", path)
+                    }
                 }
             }
             Command::Type(cmd, registry) => match cmd.as_str() {
